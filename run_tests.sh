@@ -14,7 +14,7 @@ function main() {
   # Make sure we don't interact witn the local user original_home
   export HOME="$(mktemp -d)"
 
-  for test in $(find $tests_dir -type f -iname '*.test.sh' | awk -F/ '{print $NF}'); do
+  for test in $(find $tests_dir -maxdepth 1 -type f -iname '*.test.sh' | awk -F/ '{print $NF}'); do
     test_script_title $test
 
     (eval $tests_dir/$test 2>&1)
