@@ -24,6 +24,16 @@ Actual: '$fg[red]$1$reset_color'
   fi
 }
 
+function assert_empty() {
+  if [[ ! -z "$1" ]]; then
+    print "NOT EMPTY!
+
+Actual: '$fg[red]$1$reset_color'
+"
+    exit 1
+  fi
+}
+
 function assert_file_not_exists() {
   if [[ -f "$1" ]]; then
     print "FILE EXISTS!
