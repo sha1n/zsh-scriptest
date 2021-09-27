@@ -13,6 +13,15 @@ function test_assert_equal() {
   [[ "$?" == "1" ]] || exit 1
 }
 
+function test_assert_empty() {
+  test_case_title
+  (eval 'assert_empty "not empty"')
+  [[ "$?" == "1" ]] || exit 1
+
+  (eval 'assert_empty ""')
+  [[ "$?" == "0" ]] || exit 1
+}
+
 function test_assert_not_empty() {
   test_case_title
   (eval 'assert_not_empty "not empty"')
@@ -79,6 +88,7 @@ function test_assert_contains() {
 }
 
 test_assert_equal
+test_assert_empty
 test_assert_not_empty
 test_assert_dir_exists
 test_assert_dir_not_exists
