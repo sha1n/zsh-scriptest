@@ -3,5 +3,5 @@ theme: jekyll-theme-cayman
 plugins:
   - jekyll-sitemap
 
-title: path-ethic
-description: A Zsh plugin for quick PATH editing and switching
+title: zsh-scriptest
+description: A generic test runner FW for zsh test scripts
