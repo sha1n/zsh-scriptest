@@ -62,9 +62,26 @@ function test_assert_file_not_exists() {
   [[ "$?" == "1" ]] || exit 1
 }
 
+function test_assert_contains() {
+  test_case_title
+
+  (eval 'assert_contains "abc" "a"')
+  [[ "$?" == "0" ]] || exit 1
+
+  (eval 'assert_contains "abc" "b"')
+  [[ "$?" == "0" ]] || exit 1
+
+  (eval 'assert_contains "abc" "c"')
+  [[ "$?" == "0" ]] || exit 1
+
+  (eval 'assert_contains "abc" "d"')
+  [[ "$?" == "1" ]] || exit 1
+}
+
 test_assert_equal
 test_assert_not_empty
 test_assert_dir_exists
 test_assert_dir_not_exists
 test_assert_file_exists
 test_assert_file_not_exists
+test_assert_contains

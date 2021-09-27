@@ -63,3 +63,10 @@ Path: '$1'
     exit 1
   fi
 }
+
+function assert_contains() {
+  if [[ "$1" != *"$2"* ]]; then
+    print "'$1' does not contain '$2'"
+    exit 1
+  fi
+}
