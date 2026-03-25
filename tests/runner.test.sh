@@ -6,6 +6,25 @@ source "$__ZSH_SCRIPTEST_HOME/test_util.sh"
 local runner="$__ZSH_SCRIPTEST_HOME/run_tests.sh"
 
 
+function test_runner_tap_header() {
+  test_case_title
+  local tmp_dir="$(mktemp -d)"
+
+  cat > "$tmp_dir/pass.test.sh" <<'TESTEOF'
+#!/usr/bin/env zsh
+exit 0
+TESTEOF
+  chmod +x "$tmp_dir/pass.test.sh"
+
+  local output
+  output="$($runner "$tmp_dir" 2>&1)"
+
+  assert_contains "$output" "TAP version 13"
+  assert_contains "$output" "1..1"
+
+  rm -rf "$tmp_dir"
+}
+
 function test_runner_passing_suite() {
   test_case_title
   local tmp_dir="$(mktemp -d)"
@@ -21,7 +40,7 @@ TESTEOF
   local rc="$?"
 
   assert_equal "$rc" "0"
-  assert_contains "$output" "PASSED"
+  assert_contains "$output" "ok 1 - pass.test.sh"
 
   rm -rf "$tmp_dir"
 }
@@ -41,7 +60,7 @@ TESTEOF
   local rc="$?"
 
   assert_equal "$rc" "1"
-  assert_contains "$output" "FAILED"
+  assert_contains "$output" "not ok 1 - fail.test.sh"
 
   rm -rf "$tmp_dir"
 }
@@ -67,8 +86,8 @@ TESTEOF
   local rc="$?"
 
   assert_equal "$rc" "1"
-  assert_contains "$output" "PASSED"
-  assert_contains "$output" "FAILED"
+  assert_match "$output" "ok [0-9]+ - pass.test.sh"
+  assert_match "$output" "not ok [0-9]+ - fail.test.sh"
 
   rm -rf "$tmp_dir"
 }
@@ -145,18 +164,41 @@ TESTEOF
   local output
   output="$($runner "$tmp_dir" 2>&1)"
 
-  assert_contains "$output" "Tests: 2"
-  assert_contains "$output" "Passed:"
-  assert_contains "$output" "Failed:"
+  assert_contains "$output" "1..2"
+  assert_contains "$output" "# Tests: 2"
+  assert_contains "$output" "Passed: 2"
+  assert_contains "$output" "Failed: 0"
+
+  rm -rf "$tmp_dir"
+}
+
+function test_runner_failure_diagnostics() {
+  test_case_title
+  local tmp_dir="$(mktemp -d)"
+
+  cat > "$tmp_dir/fail.test.sh" <<'TESTEOF'
+#!/usr/bin/env zsh
+echo "something went wrong"
+exit 1
+TESTEOF
+  chmod +x "$tmp_dir/fail.test.sh"
+
+  local output
+  output="$($runner "$tmp_dir" 2>&1)"
+
+  # Failure output should be included as TAP diagnostic (# prefixed)
+  assert_contains "$output" "# something went wrong"
 
   rm -rf "$tmp_dir"
 }
 
 
 # Run all tests
+test_runner_tap_header
 test_runner_passing_suite
 test_runner_failing_suite
 test_runner_mixed_suite
 test_runner_ignores_non_test_files
 test_runner_home_isolation
 test_runner_summary_output
+test_runner_failure_diagnostics

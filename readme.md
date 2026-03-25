@@ -222,13 +222,19 @@ Using Make:
 make test
 ```
 
-The runner prints a summary at the end:
+Output follows the [TAP (Test Anything Protocol)](https://testanything.org/) version 13 format:
 
 ```
-Tests: 4 | Passed: 3 | Failed: 1
+TAP version 13
+1..4
+ok 1 - matchers.test.sh
+ok 2 - test_util.test.sh
+not ok 3 - runner.test.sh
+ok 4 - edge_cases.test.sh
+# Tests: 4 | Passed: 3 | Failed: 1
 ```
 
-Exit code is `0` if all tests pass, `1` if any test fails.
+Failed test output is included as TAP diagnostic lines (prefixed with `#`). Exit code is `0` if all tests pass, `1` if any test fails.
 
 ## CI Integration
 
