@@ -87,11 +87,12 @@ function test_assert_contains() {
   [[ "$?" == "1" ]] || exit 1
 }
 
-test_assert_equal
-test_assert_empty
-test_assert_not_empty
-test_assert_dir_exists
-test_assert_dir_not_exists
-test_assert_file_exists
-test_assert_file_not_exists
-test_assert_contains
+run_test test_assert_equal
+run_test test_assert_empty
+run_test test_assert_not_empty
+run_test test_assert_dir_exists
+run_test test_assert_dir_not_exists
+run_test test_assert_file_exists
+run_test test_assert_file_not_exists
+run_test test_assert_contains
+finish_tests

@@ -9,13 +9,34 @@ function test_script_separator() {
 }
 
 function test_setup_title() {
-  printf " $fg_bold[cyan]> SETUP:$reset_color %s...\n" "$funcstack[-1]"
+  printf " $fg_bold[cyan]> SETUP:$reset_color %s...\n" "$funcstack[2]"
 }
 
 function test_teardown_title() {
-  printf " $fg_bold[cyan]> TEARDOWN:$reset_color %s...\n" "$funcstack[-1]"
+  printf " $fg_bold[cyan]> TEARDOWN:$reset_color %s...\n" "$funcstack[2]"
 }
 
 function test_case_title() {
-  printf " $fg_bold[cyan]> CASE:$reset_color %s...\n" "$funcstack[-1]"
+  printf " $fg_bold[cyan]> CASE:$reset_color %s...\n" "$funcstack[2]"
+}
+
+__SCRIPTEST_FAIL=0
+
+function run_test() {
+  local func_name="$1"
+  local output
+  output="$("$func_name" 2>&1)"
+  if [[ "$?" == "0" ]]; then
+    print "ok - $func_name"
+  else
+    (( __SCRIPTEST_FAIL++ ))
+    print "not ok - $func_name"
+    print "$output" | while IFS= read -r line; do
+      [[ -n "$line" ]] && print "#   $line"
+    done
+  fi
+}
+
+function finish_tests() {
+  [[ "${__SCRIPTEST_FAIL:-0}" -eq 0 ]] || exit 1
 }
