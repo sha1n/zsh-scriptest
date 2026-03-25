@@ -21,7 +21,8 @@ function test_greeting() {
   assert_not_empty "$result"
 }
 
-test_greeting
+run_test test_greeting
+finish_tests
 ```
 
 Run it:
@@ -64,7 +65,7 @@ Test files must match the pattern `*.test.sh` and be executable. The runner disc
 Each test file should:
 1. Source `matchers.sh` and `test_util.sh`
 2. Define test functions
-3. Call the test functions at the bottom of the file
+3. Run them with `run_test` and call `finish_tests` at the end
 
 ```zsh
 #!/usr/bin/env zsh
@@ -82,9 +83,12 @@ function test_another_thing() {
   # ... test logic and assertions ...
 }
 
-test_something
-test_another_thing
+run_test test_something
+run_test test_another_thing
+finish_tests
 ```
+
+`run_test` executes each test function in a subshell, so a failure in one test does not prevent other tests from running. It emits TAP-compliant `ok`/`not ok` lines, and on failure includes the test output as diagnostic lines.
 
 ### Setup and Teardown
 
@@ -108,7 +112,8 @@ function test_my_feature() {
 }
 
 setup
-test_my_feature
+run_test test_my_feature
+finish_tests
 teardown
 ```
 
@@ -202,11 +207,11 @@ To test that a matcher correctly fails, run the assertion in a subshell and chec
 
 | Function | Description | Usage |
 |----------|-------------|-------|
+| `run_test` | Runs a test function in a subshell and emits TAP output | `run_test test_my_func` |
+| `finish_tests` | Exits with code 1 if any `run_test` calls failed | Call at the end of each test file |
 | `test_case_title` | Prints the calling function name as a test case header | Call at the top of each test function |
 | `test_setup_title` | Prints the calling function name as a setup header | Call at the top of setup functions |
 | `test_teardown_title` | Prints the calling function name as a teardown header | Call at the top of teardown functions |
-| `test_script_title` | Prints a test script name header | Used internally by the runner |
-| `test_script_separator` | Prints an 80-character separator line | Used internally by the runner |
 
 ## Running Tests
 
@@ -222,16 +227,18 @@ Using Make:
 make test
 ```
 
-Output follows the [TAP (Test Anything Protocol)](https://testanything.org/) version 13 format:
+Output follows [TAP (Test Anything Protocol)](https://testanything.org/) format, with one line per test case:
 
 ```
-TAP version 13
-1..4
-ok 1 - matchers.test.sh
-ok 2 - test_util.test.sh
-not ok 3 - runner.test.sh
-ok 4 - edge_cases.test.sh
-# Tests: 4 | Passed: 3 | Failed: 1
+1..5
+ok 1 - test_greeting
+ok 2 - test_farewell
+not ok 3 - test_broken
+#   NOT EQUAL!
+#   Expected: 'goodbye'
+#     Actual: 'hello'
+ok 4 - test_file_created
+ok 5 - test_cleanup
 ```
 
 Failed test output is included as TAP diagnostic lines (prefixed with `#`). Exit code is `0` if all tests pass, `1` if any test fails.

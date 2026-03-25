@@ -25,11 +25,11 @@ function test_test_case_title_output() {
   # test_case_title uses funcstack[-1] which returns the outermost calling function
   local output="$(test_case_title)"
   assert_contains "$output" "CASE:"
+  # When run via run_test, funcstack[-1] is the test function itself
   assert_contains "$output" "test_test_case_title_output"
 }
 
 function test_test_setup_title_output() {
-  test_case_title
   # test_setup_title uses funcstack[-1] for the outermost caller
   local output="$(test_setup_title)"
   assert_contains "$output" "SETUP:"
@@ -37,7 +37,6 @@ function test_test_setup_title_output() {
 }
 
 function test_test_teardown_title_output() {
-  test_case_title
   # test_teardown_title uses funcstack[-1] for the outermost caller
   local output="$(test_teardown_title)"
   assert_contains "$output" "TEARDOWN:"
@@ -46,8 +45,9 @@ function test_test_teardown_title_output() {
 
 
 # Run all tests
-test_test_script_title
-test_test_script_separator
-test_test_case_title_output
-test_test_setup_title_output
-test_test_teardown_title_output
+run_test test_test_script_title
+run_test test_test_script_separator
+run_test test_test_case_title_output
+run_test test_test_setup_title_output
+run_test test_test_teardown_title_output
+finish_tests
