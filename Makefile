@@ -2,5 +2,6 @@ MAKEFLAGS += --silent
 
 default: test 
 
-test: 
+test:
 	./run_tests.sh .
+	./run_tests.sh ./tests
