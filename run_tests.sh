@@ -30,6 +30,8 @@ function main() {
       exit_code=1
     fi
 
+    all_lines+=("# $test")
+
     # Re-number ok/not ok lines from test file output
     while IFS= read -r line; do
       if [[ "$line" == "ok - "* ]]; then
