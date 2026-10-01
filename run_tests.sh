@@ -18,43 +18,39 @@ function main() {
   export HOME="$(mktemp -d)"
 
   local test_files=($(find $tests_dir -maxdepth 1 -type f -iname '*.test.sh' | awk -F/ '{print $NF}'))
-  local output
   local test_exit_code
-  local all_lines=()
+  local line
 
+  # Each result line is printed as it arrives, so a slow suite shows progress; the
+  # plan line comes last because TAP allows a trailing plan and the total is only
+  # known then. The while loop is the last pipeline stage, which zsh runs in the
+  # current shell, so the counters survive it.
   for test in "${test_files[@]}"; do
-    output="$($tests_dir/$test 2>&1)"
-    test_exit_code="$?"
+    print "# $test"
+
+    "$tests_dir/$test" 2>&1 | while IFS= read -r line; do
+      if [[ "$line" == "ok - "* ]]; then
+        (( test_num++ ))
+        (( passed++ ))
+        print "ok $test_num - ${line#ok - }"
+      elif [[ "$line" == "not ok - "* ]]; then
+        (( test_num++ ))
+        (( failed++ ))
+        print "not ok $test_num - ${line#not ok - }"
+      elif [[ "$line" == "#"* ]]; then
+        print "$line"
+      fi
+    done
+    test_exit_code="$pipestatus[1]"
 
     if [[ "$test_exit_code" != "0" ]]; then
       exit_code=1
     fi
-
-    all_lines+=("# $test")
-
-    # Re-number ok/not ok lines from test file output
-    while IFS= read -r line; do
-      if [[ "$line" == "ok - "* ]]; then
-        (( test_num++ ))
-        (( passed++ ))
-        all_lines+=("ok $test_num - ${line#ok - }")
-      elif [[ "$line" == "not ok - "* ]]; then
-        (( test_num++ ))
-        (( failed++ ))
-        all_lines+=("not ok $test_num - ${line#not ok - }")
-      elif [[ "$line" == "#"* ]]; then
-        all_lines+=("$line")
-      fi
-    done <<< "$output"
   done
 
   export HOME="$original_home"
 
-  # Emit TAP stream: plan line first, then results
   print "1..$test_num"
-  for line in "${all_lines[@]}"; do
-    print "$line"
-  done
 
   if [[ "$exit_code" != "0" ]]; then
     exit $exit_code

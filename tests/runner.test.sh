@@ -244,9 +244,64 @@ TESTEOF
   rm -rf "$tmp_dir"
 }
 
+function test_runner_plan_line_is_last() {
+  test_case_title
+  local tmp_dir="$(mktemp -d)"
+
+  cat > "$tmp_dir/pass.test.sh" <<TESTEOF
+#!/usr/bin/env zsh
+source "$__ZSH_SCRIPTEST_HOME/test_util.sh"
+function test_ok() { true; }
+run_test test_ok
+finish_tests
+TESTEOF
+  chmod +x "$tmp_dir/pass.test.sh"
+
+  local output
+  output="$($runner "$tmp_dir" 2>&1)"
+
+  assert_equal "${output##*$'\n'}" "1..1"
+
+  rm -rf "$tmp_dir"
+}
+
+# A result must reach the output while the file is still running, so a slow suite
+# shows progress instead of silence until the end.
+function test_runner_streams_results() {
+  test_case_title
+  local tmp_dir="$(mktemp -d)"
+
+  cat > "$tmp_dir/slow.test.sh" <<TESTEOF
+#!/usr/bin/env zsh
+source "$__ZSH_SCRIPTEST_HOME/test_util.sh"
+function test_first() { true; }
+function test_second() { true; }
+run_test test_first
+sleep 3
+run_test test_second
+finish_tests
+TESTEOF
+  chmod +x "$tmp_dir/slow.test.sh"
+
+  $runner "$tmp_dir" > "$tmp_dir/output" 2>&1 &
+  local runner_pid=$!
+  sleep 1
+  local early_output="$(<"$tmp_dir/output")"
+  wait "$runner_pid"
+
+  assert_contains "$early_output" "ok 1 - test_first"
+  assert_not_contains "$early_output" "test_second"
+  assert_not_contains "$early_output" "1.."
+  assert_contains "$(<"$tmp_dir/output")" "ok 2 - test_second"
+
+  rm -rf "$tmp_dir"
+}
+
 
 # Run all tests
 run_test test_runner_plan_line
+run_test test_runner_plan_line_is_last
+run_test test_runner_streams_results
 run_test test_runner_passing_suite
 run_test test_runner_failing_suite
 run_test test_runner_mixed_suite

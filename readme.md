@@ -230,18 +230,20 @@ make test
 Output follows [TAP (Test Anything Protocol)](https://testanything.org/) format, with one line per test case:
 
 ```
-1..5
+# greetings.test.sh
 ok 1 - test_greeting
 ok 2 - test_farewell
 not ok 3 - test_broken
 #   NOT EQUAL!
 #   Expected: 'goodbye'
 #     Actual: 'hello'
+# files.test.sh
 ok 4 - test_file_created
 ok 5 - test_cleanup
+1..5
 ```
 
-Failed test output is included as TAP diagnostic lines (prefixed with `#`). Exit code is `0` if all tests pass, `1` if any test fails.
+Each file name is printed as a comment before its results. Results are printed as each case finishes, so a slow suite shows progress. The plan line (`1..N`) comes last, because the total is known only then. Failed test output is included as TAP diagnostic lines (prefixed with `#`). Exit code is `0` if all tests pass, `1` if any test fails.
 
 ## CI Integration
 
